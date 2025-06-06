@@ -1,0 +1,162 @@
+---
+title: "Relatedness tutorial"
+output: html_document
+date: "2025-06-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+To estimate relatedness, we consider whether or not alleles are Identical By Descent (IBD). IBD is simply asking if two alleles were inherited from a common ancestor. When we calculate relatedness, we're usually actually calculating kinship, the probability that two alleles sampled at random from two individuals are identical by descent. What this means, practically speaking, is that the highest kinship possible is 0.5. I'll explain below with an example using monozygotic twins. 
+
+In the case of monozygotic twins, they are genetically identical. So while you might think kinship should be 1, it isn't. 
+
+Imagine we have an AC heterozygote at some locus.
+
+Individual 1: AC
+Individual 2: AC
+
+Remember that kinship is the probability that if we randomly sample one allele from Individual 1 and one from Individual 2, they are identical by descent. We could have the following possible samples:
+
+1. Individual 1: A; Individual 2: A
+2. Individual 1: A; Individual 2: C
+3. Individual 1: C; Individual 2: C
+4. Individual 1: C; Individual 2: A
+
+Only when the same allele is sampled in both individuals do we satisfy IBD. So cases 1 and 3 are IBD, which is 0.5
+
+We can do this same type of calculation for other relationships as well. But it is a little more complicated because we have to consider that each parent only passes on one of their two alleles.  Here are full siblings:
+
+There are 4 possible inheritance patterns for full siblings:
+
+- Pattern 1. Both get same allele from mom AND same allele from dad --> Share 2 alleles IBD
+- Pattern 2. Both get same allele from mom, different alleles from dad --> Share 1 allele IBD
+- Pattern 3. Different alleles from mom, both get same allele from dad --> Share 1 allele IBD
+- Pattern 4. Different alleles from mom AND different alleles from dad --> Share 0 alleles IBD
+
+We can calculate the probability of each pattern above: 
+
+- Pattern 1: Share 2 alleles IBD = 0.25
+- Pattern 2: Share 1 allele IBD = 0.25
+- Pattern 3: Share 1 allele IBD = 0.25
+- Pattern 4: Share 0 alleles IBD = 0.25
+
+To get each of the probabilities above, you can think about it in the same way as the twin example. I'll just show Pattern 1 here where the parents are both AC heterozygotes. We get 2 alleles IBD when:
+
+Scenario 1:
+
+- Both siblings inherit A from parent 1: 0.5 × 0.5 = 0.25
+- Both siblings inherit A from parent 2: 0.5 × 0.5 = 0.25
+- Combined probability: 0.25 × 0.25 = 0.0625
+
+OR
+
+Scenario 2:
+
+- Both siblings inherit A from parent 1: 0.5 × 0.5 = 0.25
+- Both siblings inherit C from parent 2: 0.5 × 0.5 = 0.25
+- Combined probability: 0.25 × 0.25 = 0.0625
+
+OR
+
+Scenario 3:
+
+- Both siblings inherit C from parent 1: 0.5 × 0.5 = 0.25
+- Both siblings inherit A from parent 2: 0.5 × 0.5 = 0.25
+- Combined probability: 0.25 × 0.25 = 0.0625
+
+OR
+
+Scenario 4:
+
+- Both siblings inherit C from parent 1: 0.5 × 0.5 = 0.25
+- Both siblings inherit C from parent 2: 0.5 × 0.5 = 0.25
+- Combined probability: 0.25 × 0.25 = 0.0625
+
+Total probability of Pattern 1 (sharing 2 alleles IBD) = 0.0625 + 0.0625 + 0.0625 + 0.0625 = 0.25
+
+Ok, so how do we get to the kinship for siblings? We can weight each scenario above by the probability that we would identify IBD. 
+
+- Scenario 1: 1
+- Scenario 2: 0.5
+- Scenario 3: 0.5
+- Scenario 4: 0
+
+Then we multiply the probability of each scenario by the probability of detecting IBD:
+
+```
+(0.25 × 1.0) + (0.25 × 0.5) + (0.25 × 0.5) + (0.25 × 0.0)
+Kinship = 0.25 + 0.125 + 0.125 + 0.0 = 0.25
+```
+
+But in practice you don't have to do this. Below are the expected kinship coefficients for common relationships:
+
+| Relationship | Kinship |
+|--------------|---------|
+| Identical twins/clones/same individual | 0.5 |
+| Sibling/Parent-Offspring | 0.25 |
+| Half-sibling | 0.125 |
+| First cousin | 0.0625 |
+| Half-cousin | 0.031 |
+| Second cousin | 0.016 |
+| Half-second cousin | 0.008 |
+| Third cousin | 0.004 |
+| Unrelated | 0 |
+
+
+## Identity by state vs. Identity by descent
+
+The complication of these analyses is that we know that populations share alleles and we expect individuals to have the have the same allele at some loci even when the individuals are unrelated- this is called Identity By State (IBS). We need to distinguish IBS from IBD. 
+
+This is not all that complicated in its basic principles. If we know the allele frequencies of the population then we can generate predictions of IBS for any locus based on these frequencies. If two individuals share more alleles than expected under IBS, this indicates they are sharing alleles through recent common ancestry (IBD) rather than by chance alone.
+
+For example, if an allele has a frequency of 0.1 in the population, we expect two unrelated individuals to both carry this allele by chance with probability 0.1² = 0.01 (1% of the time). However, if we observe that related individuals share this rare allele much more frequently than 1% of the time, this excess sharing indicates IBD.
+
+At any site, we observe that IBS is either 0, 1, or 2. We can then scale these counts by the expected IBS at each site and calculate the amount of IBD. In sum, IBD creates systematic patterns of allele sharing that exceed what we would expect from random chance based on population allele frequencies.
+
+[You can find a nice summary of the underlying math here](https://www.mv.helsinki.fi/home/mjxpirin/GWAS_course/material/GWAS5.html)
+
+**With this basic approach, we are assuming there is no population structure**
+
+## what about population structure?
+
+When there is population structure, the most basic relatedness calculations will be biased and unreliable. Fortunately, there have been additional methods developed that work well under these conditions. The most well known is the [KING-Robust approach](https://www.kingrelatedness.com/manual.shtml), [original paper](https://www.chen.kingrelatedness.com/publications/pdf/BI26_2867.pdf). 
+
+![](images/KING.PNG){width=20%}
+
+Relatedness is estimated by subtracting the count of loci where individuals are opposite homozygotes (N2,0) from the count of loci where both are heterozygous (N1,1), then dividing by the sum of all heterozygous loci observed in either individual.
+
+Here, it is important that loci are in HWE. 
+
+from the manual: `Close relatives can be inferred fairly reliably based on the estimated kinship coefficients as shown in the following simple algorithm: an estimated kinship coefficient range >0.354, [0.177, 0.354], [0.0884, 0.177] and [0.0442, 0.0884] corresponds to duplicate/MZ twin, 1st-degree, 2nd-degree, and 3rd-degree relationships respectively. Relationship inference for more distant relationships is more challenging`
+
+
+# relatedness in practice
+
+Ok, so how do we actually analyze data?
+
+There are a number of methods we can use to do this. We're going to follow follow the waples approach. King + R0 and R1. Explain R0, R1, and why they're useful. 
+
+
+A plot of the estimated kinship coefficient against the proportion of zero IBS-sharing is highly recommended.
+
+#
+
+
+- follow the waples approach. King + R0 and R1. 
+    - Allele frequency-free inference of close familial relationships from genotypes or low-depth sequencing data
+    - https://onlinelibrary.wiley.com/doi/full/10.1111/mec.14954
+- Could also talk about colony or similar.
+
+can implement in ngsrelate: Fast and accurate relatedness estimation from high-throughput sequencing data in the presence of inbreeding 
+
+https://www.science.org/doi/10.1126/science.adn7954
+    - look in supplemental
+https://www.pnas.org/doi/suppl/10.1073/pnas.1820210116#supplementary-materials
+    - in supplemental fig S9
+
+https://www.nature.com/articles/s41559-023-02165-y#MOESM1
+
+existing tutorial:
+- https://green-striped-gecko.github.io/kioloa/session11.html
