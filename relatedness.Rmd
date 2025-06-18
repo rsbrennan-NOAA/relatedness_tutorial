@@ -122,7 +122,7 @@ But in practice you don't have to do this. Below are the expected kinship coeffi
 
 The complication of these analyses is that we know that populations share alleles and we expect individuals to have the have the same allele at some loci even when the individuals are unrelated- this is called Identity By State (IBS).
 
-In the most basic sense, we can calculate IBS by looking at the genotypes of each individual. The individuals can share 0, 1, or 2 alleles and we can assign these values to each locus. We then sum up these values and divide by 2*total loci to get the IBS estimate for any two individuals. For example:
+We calculate IBS by looking at the genotypes of each individual. The individuals can share 0, 1, or 2 alleles and we can assign these values to each locus. We then sum up these values and divide by 2*total loci to get the IBS estimate for any two individuals. For example:
 
 | Individual 1 | Individual 2 | IBS Value |
 |--------------|---------| ---------|
@@ -137,42 +137,214 @@ In the most basic sense, we can calculate IBS by looking at the genotypes of eac
 | AA | AT| 1|
 | TT | AA| 0|
 
-If we add these up, we get 7, and divide by 2*10 to get IBS = 0.35. 
+If we add these up, we get 7, and divide by 2*10 (because there are 20 alleles) to get IBS = 0.35. 
 
 Alternatively, if we calculate IBS as proportions of the total loci we can calculate IBS as `IBS2 + (0.5*IBS1)`. From our example above, `IBS2 = 0.1`, `IBS1= 0.5`, and we get: `0.1 + (0.5*0.5) = 0.35`.
 
 
 ### Identity by descent
 
-The challenge here is to distinguish alleles that are shared due to descent (IBD; i.e., relatedness) from those that are simply the same by state. 
+The challenge here is to distinguish alleles that are shared due to descent (IBD) from those that are simply the same by state. 
 
 IBS will depend on population frequencies, where more common alleles will be shared more often than rare. If we know the allele frequencies of the population then we can generate predictions of IBS for any locus based on these frequencies. 
 
 For example, if an allele has a frequency of 0.1 in the population, we expect two unrelated individuals to both carry this allele by chance with probability 0.1^2 = 0.01 (1% of the time). However, if we observe that related individuals share this rare allele much more frequently than 1% of the time, this excess sharing indicates IBD.
 
-In practice, this is done in many different ways, but one common approach is using PLINK. Plink uses the observed IBS at each locus to calculate the probability of IBD.
+In practice, there are many programs that will calculate IBD for you. However, I think it is informative to understand generally how this process works. 
 
-The method relies on the fact that observed IBS can be explained by underlying IBD states. At any locus, the probability of observing k identical alleles between two individuals is:
+### Manually calculating IBD
+
+We're going to follow [PLINK](https://www.cog-genomics.org/plink/2.0/)'s pi hat method of calculating IBD. PLINK uses the observed IBS at each locus to calculate the probability of IBD. Note that this is generally NOT how you want to calculate IBD for your actual data (which will be explained below). You're probably wondering why we're doing this? Because it will demonstrate the basics of IBD vs IBS. 
+
+We rely on the fact that observed IBS can be linked to underlying IBD states. At any locus, the probability of observing k identical alleles between two individuals is:
 
 `P(IBS=k) = P(IBS=k|IBD=0)×P(IBD=0) + P(IBS=k|IBD=1)×P(IBD=1) + P(IBS=k|IBD=2)×P(IBD=2)`
 
-For each locus, the left-hand side values P(IBS=k) come from observed data - we count what proportion of loci show 0, 1, or 2 matching alleles across the genome.
+For each locus, the left-hand side values P(IBS=k) come from observed data - we count what proportion of loci show 0, 1, or 2 matching alleles across the genome. We need to calculate this probability for each value of k. 
 
-The conditional probabilities P(IBS=k|IBD=z) are calculated using population allele frequencies. For example, if two individuals share 0 alleles IBD, all four of their alleles are sampled independently from the population, so we can calculate the probability they'll appear identical just by chance for one locus. We then take the average across all loci.
+*The conditional probabilities `P(IBS=k|IBD=z)` are calculated using population allele frequencies.*
 
-Because we know the observed IBS proportions and can calculate the conditional probabilities, we can solve these three equations (one for each k=0,1,2) for the three unknown IBD probabilities. These IBD probabilities are then combined into the kinship coefficient:
+
+#### Conditional probability examples:
+
+If we know p and q, then we can estimate any condition probability `P(IBS=k|IBD=z)` for two individuals. We will run through some of the calculations here, but see [table 1 and table 2 in the plink paper](https://pmc.ncbi.nlm.nih.gov/articles/PMC1950838/) for the full list (including bias correction, which we're ignoring).
+
+<br><br>
+
+##### P(I=0|Z=0)
+
+In this case, our two individuals share 0 alleles by state and 0 by descent. In other words, they are opposite homozygotes.
+
+Two possibilities:
+
+Individual 1 is `AA` Individual 2 is `aa`: probability p^2^×q^2^ 
+Individual 1 is `aa` Individual 2 is `AA`: probability p^2^×q^2^ 
+
+Total: 2p^2^q^2^. 
+
+<br><br>
+
+##### P(I=1|Z=0)
+
+Two individuals share 1 allele by state, 0 by descent.
+
+Possibilities:
+
+Individual 1 is AA and Individual 2 is Aa: probability p^2^ × 2pq = 2p^3^q
+Individual 1 is Aa and Individual 2 is AA: probability 2pq × p^2^ = 2p^3^q
+Total: 2p^3^q + 2p^3^q = 4p^3^q
+
+And we have to do it both for AA,Aa and Aa,aa, so we add these together: 4p^3^q + 4p^3^q
+
+<br><br>
+
+##### P(I=1|Z=1)
+
+Two individuals share 1 allele by state, 1 by descent. This is where things get more complicated.
+
+If the genotype is AA, Aa, then the IBD allele must be A.
+
+Case 1: Individual 1 is AA, Individual 2 is Aa
+
+Individual 1's non-IBD allele must be A (probability p)
+Individual 2's non-IBD allele must be a (probability q)
+Probability: p × q = pq
+
+Case 2: Individual 1 is Aa, Individual 2 is AA
+
+Individual 1's non-IBD allele must be a (probability q)
+Individual 2's non-IBD allele must be A (probability p)
+Probability: q × p = pq
+
+Because we have the specific case where genotypes are AA and Aa. This can ONLY happen when the shared IBD allele is A (if it were a, we couldn't get genotypes AA and Aa). The probability that the IBD allele is A is p because when two individuals share an allele by descent, that shared allele must have come from a common ancestor, which happens at a frequency of p.
+
+Probability the IBD allele is A: p 
+
+Total probability is: p × (pq + pq) = p × 2pq = 2p²q
+
+Again, we do it in both directions for AA,Aa and aa,aA so the total is 2p²q + 2pq²
+
+<br><br>
+
+
+##### P(I=2|Z=1)
+
+Two individuals share 2 allele by state, 1 by descent. This means they have the same genotype.
+
+Case 1: Individual 1 is AA, Individual 2 is AA
+
+The shared IBD allele must be A (probability p)
+
+Individual 1's non-IBD allele is A (probability p)
+Individual 2's non-IBD allele is A (probability p)
+
+we need three independent "A" outcomes: the ancestral IBD allele plus the two non-IBD alleles.
+Total: p^3^
+
+Case 2: Individual 1 is aa, Individual 2 is aa
+
+The same as above, but for q:q^3^
+
+Case 3: Individual 1 is Aa, Individual 2 is Aa
+
+Either A or a could be the IBD allele.
+
+The probability both individuals receive an A non-IBD (p * p) and that a is IBD (q) = p^2^q
+The probability both individuals receive an a non-IBD (q * q) and that A is IBD (p) = pq^2^
+
+
+ p^3^ + q^3^ + p^2^q + pq^2^
+
+<br><br><br><br>
+
+
+### calculating IBD
+
+Let's go back to our equation for IBS now that we know how to calculate conditional probabilities:
+
+`P(IBS=k) = P(IBS=k|IBD=0)×P(IBD=0) + P(IBS=k|IBD=1)×P(IBD=1) + P(IBS=k|IBD=2)×P(IBD=2)`
+
+Because we know the observed IBS proportions and can calculate the conditional probabilities, we can solve these three equations (one for each k=0,1,2) for the three unknown IBD probabilities. We need to do this before we calculate the kinship coefficient.
+
+The key idea here is that we observe IBS directly from the data, calculate the conditional probabilities, then solve for the unobserved IBD states. For this to be accurate, we need to use many loci across the genome, at least thousands.
+
+
+```{r eval=TRUE}
+
+# Allele frequencies
+p <- 0.2
+q <- 0.8  
+
+# Calculate conditional probabilities P(IBS=k|IBD=z)
+# we can pull all of these from the plink paper, so you don't need to manually figure them out
+
+# IBD = 0 
+P_IBS0_IBD0 <- 2 * p^2 * q^2
+P_IBS1_IBD0 <- (4 * p^3 * q) + (4 * p * q^3)
+P_IBS2_IBD0 <- p^4 + q^4 + (4 * p^2 * q^2)
+
+# IBD = 1 
+P_IBS0_IBD1 <- 0  # Impossible to share 0 alleles if 1 is IBD
+P_IBS1_IBD1 <- (2 * p^2 * q)  + (2 * p * q^2)
+P_IBS2_IBD1 <- p^3 + q^3 +(p^2 * q) + (p * q^2)
+
+# IBD = 2 
+P_IBS0_IBD2 <- 0  # Impossible
+P_IBS1_IBD2 <- 0  # Impossible
+P_IBS2_IBD2 <- 1  # Always identical: 1
+
+# Create the coefficient matrix A
+A <- matrix(c(
+  P_IBS0_IBD0, P_IBS0_IBD1, P_IBS0_IBD2,
+  P_IBS1_IBD0, P_IBS1_IBD1, P_IBS1_IBD2,
+  P_IBS2_IBD0, P_IBS2_IBD1, P_IBS2_IBD2
+), nrow = 3, byrow = TRUE)
+
+colnames(A) <- c("IBD=0", "IBD=1", "IBD=2")
+rownames(A) <- c("IBS=0", "IBS=1", "IBS=2")
+
+# these are the conditional probabilities
+print(A)
+
+# Let's make up some data across 10,000 loci:
+# - 150 SNPs with 0 matching alleles → P(IBS=0) = 0.02
+# - 2500 SNPs with 1 matching allele → P(IBS=1) = 0.25
+# - 7300 SNPs with 2 matching alleles → P(IBS=2) = 0.73
+
+observed_IBS <- c(0.015, 0.25, 0.73)
+
+# Solve for IBD 
+IBD_probs <- solve(A, observed_IBS)
+IBD_probs
+# these should add to 1
+
+
+```
+
+ These IBD probabilities are then used to calculate kinship coefficient, which for plink is the proportion of alleles share by IBD. Plink calls this pi hat. Note that this is on a scale of 0-1 where 1 are genetically identical. You can divide by 2 to have it comparable to kinship values.
  
 `0.5*P(IBD=1) + P(IBD=2)`
  
-The key idea here is that we observe IBS directly from the data, calculate the conditional probabilities, then solve for the unobserved IBD states. See [table 2 in the plink paper](https://pmc.ncbi.nlm.nih.gov/articles/PMC1950838/) for the probabilities of genotypes given IBD states. For this to be accurate, we need to use many loci across the genome.
+ 
+```{r eval=TRUE}
+
+pi_hat <- 0.5 * IBD_probs[2] + IBD_probs[3]
+pi_hat
+
+pi_hat/2
+
+```
+ 
+Go look at the table from earlier that shows the expected relationships between individuals. 
+
+From this, our two individuals are Siblings or Parent-Offspring. 
 
 
 **With this basic approach, we are assuming there is no population structure**
 
 ## What about population structure?
 
-When there is population structure, the PLINK method described above will be biased and unreliable because it assumes individuals are drawn from a homogeneous population with known allele frequencies. Fortunately, there have been additional methods developed that work well under these conditions. The most well known is the [KING-Robust approach](https://www.kingrelatedness.com/manual.shtml) (link to [original paper](https://www.chen.kingrelatedness.com/publications/pdf/BI26_2867.pdf)). 
-
+When there is population structure, the PLINK method described above will be biased and unreliable because it assumes individuals are drawn from a homogeneous population with known allele frequencies. Fortunately, there have been additional methods developed that work well under these conditions. The most well known is the [KING-Robust approach](https://www.kingrelatedness.com/manual.shtml) (link to [original paper](https://www.chen.kingrelatedness.com/publications/pdf/BI26_2867.pdf)). In general, you should always choose the KING approach over the PLINK approach. 
 
 ![](images/KING.PNG){width=20%}
 
@@ -196,7 +368,7 @@ This method is nice because:
 
 With the approach, we use three estimators to identify relatedness: KING-robust kinship estimator, R0, and R1. These are defined as follows, where we're looking at the genotype for each of two individuals:
 
-![](images/waples.png){width=40%}
+![](images/waples.png){width=60%}
 
 R0 is the proportion of sites where individuals have unique homozygous genotypes, scaled by the shared heterozygotes. This is a modified proportion of loci where IBS is 0, and is robust to ascertainment bias. 
 
@@ -207,14 +379,18 @@ Specifically, we're interested in the relationship between [R1, R0] and [R1, KIN
 
 For example, the KING estimator cannot distinguish parent-offspring from full sibs. However, R0 and R1 can. This is because R0 is looking at the number of unique homozygotes for each individual and a parent offspring pair must always share one allele; R0 will be ~0 for parent-offspring and > 0 for full sibs. Similarly, R1 will be higher for full sibs than parent offspring.   
 
+<br><br>
+
 ### ngsrelate
 
-We will use [NgsRelat](https://github.com/ANGSD/NgsRelate) to calculate R0, R1, and the KING estimator. See the [NgsRelate paper here](https://academic.oup.com/gigascience/article/8/5/giz034/5481763).
+We will use [NgsRelate](https://github.com/ANGSD/NgsRelate) to calculate R0, R1, and the KING estimator. See the [NgsRelate paper here](https://academic.oup.com/gigascience/article/8/5/giz034/5481763).
 
-This program can calculate a ton of different relatedness estimators and can handle genotype likelihoods or a vcf, which means it can handle low coverage data. For our example, we will use a vcf. 
+This program can calculate a ton of different relatedness estimators and can handle genotype likelihoods or a vcf, which means it can handle low coverage data. For our example, we will use a vcf, but see the website for how to use likelihoods. 
 
 
-```{bash include = FALSE, eval =F}
+The command is straight forward:
+
+```{bash include = TRUE, eval =F}
 
 ngsrelate -h  whales.vcf.gz -T GT -c 1 -O relatedness.res
 
@@ -223,36 +399,25 @@ ngsrelate -h  whales.vcf.gz -T GT -c 1 -O relatedness.res
 
 Note that `-T GT` says we're using genotypes and `-c 1` means we've already called these genotypes. 
 
-```{r include = T}
+```{r eval = T}
 library(ggplot2)
-#library(tidyverse)
-#library(scales)
-#library(ggbeeswarm)
+library(ggpubr)
 
 dat <- read.table("relatedness.res", header=T)
 
-ggplot(dat, aes(x=R1, y=KING)) +
-  geom_point(alpha=0.5, size=2) 
+R1_KING <- ggplot(dat, aes(x=R1, y=KING)) +
+              geom_point(alpha=0.5, size=2) 
 
-ggplot(dat, aes(x=R1, y=R0)) +
-  geom_point(alpha=0.5, size=2)
+R1_R0 <- ggplot(dat, aes(x=R1, y=R0)) +
+              geom_point(alpha=0.5, size=2)
   
+ggarrange(R1_KING, R1_R0)
   
 ```
 
 You'll notice that we have a bunch of negative values for our KING estimator and values > 0.5 for R0. This means that these individuals are less related than expected (i.e., maybe population structure is present). For our purposes, we don't care about these unrelated individuals and can focus only on individuals with R0 < 0.5 and KING > 0. 
 
-```{r include = T}
-
-library(tidyverse)
-
-# Filter for related individuals: R0 < 0.5 and KING > 0
-filter_dat <- dat %>%
-  filter(R0 < 0.5, KING > 0)
-
-```
-
-and lets color these by the range KING gives for each relationship:
+And lets color these by the range KING gives for each relationship:
 
       Close relatives can be inferred fairly reliably based on the estimated kinship coefficients as shown in the following simple algorithm: an estimated kinship coefficient range >0.354, [0.177, 0.354], [0.0884, 0.177] and [0.0442, 0.0884] corresponds to duplicate/MZ twin, 1st-degree, 2nd-degree, and 3rd-degree relationships respectively. Relationship inference for more distant relationships is more challenging
       
@@ -260,6 +425,7 @@ So we will consider anything beyond a 3rd degree relative (cousin) unrelated.
 
 
 ```{r include = T}
+library(tidyverse)
 
 dat <- dat %>%
   mutate(relationship = case_when(
@@ -275,16 +441,18 @@ dat <- dat %>%
 filter_dat <- dat %>%
   filter(R0 < 0.5, KING > 0)
 
-ggplot(filter_dat, aes(x = R1, y = KING, color = relationship)) +
-  geom_point(size = 2) +
-  ylim(0, 0.25) +
-  labs(color = "Relationship")
+R1_KING_filtered <- ggplot(filter_dat, aes(x = R1, y = KING, color = relationship)) +
+                      geom_point(size = 2) +
+                      ylim(0, 0.25) +
+                      labs(color = "Relationship")
 
 # Plot R1 vs R0 with relationship colors  
-ggplot(filter_dat, aes(x = R1, y = R0, color = relationship)) +
-  geom_point(size = 2) +
-  ylim(0, 0.5) +
-  labs(color = "Relationship")
+R1_R0_filtered <- ggplot(filter_dat, aes(x = R1, y = R0, color = relationship)) +
+                    geom_point(size = 2) +
+                    ylim(0, 0.5) +
+                    labs(color = "Relationship")
+
+ggarrange(R1_KING_filtered, R1_R0_filtered, common.legend=T, legend="bottom")
 
 ```
 
