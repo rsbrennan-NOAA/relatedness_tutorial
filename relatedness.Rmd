@@ -255,7 +255,7 @@ The probability both individuals receive an a non-IBD (q * q) and that A is IBD 
 
  p^3^ + q^3^ + p^2^q + pq^2^
 
-<br><br><br><br>
+<br><br>
 
 
 ### calculating IBD
@@ -342,6 +342,8 @@ From this, our two individuals are Siblings or Parent-Offspring. How do we tell 
 
 **With this basic approach, we are assuming there is no population structure**
 
+<br><br>
+
 ## What about population structure?
 
 When there is population structure, the PLINK method described above will be biased and unreliable because it assumes individuals are drawn from a homogeneous population with known allele frequencies. Fortunately, there have been additional methods developed that work well under these conditions. The most well known is the [KING-Robust approach](https://www.kingrelatedness.com/manual.shtml) (link to [original paper](https://www.chen.kingrelatedness.com/publications/pdf/BI26_2867.pdf)). In general, you should always choose the KING approach over the PLINK approach. 
@@ -356,6 +358,7 @@ from the manual:
 
     Close relatives can be inferred fairly reliably based on the estimated kinship coefficients as shown in the following simple algorithm: an estimated kinship coefficient range >0.354, [0.177, 0.354], [0.0884, 0.177] and [0.0442, 0.0884] corresponds to duplicate/MZ twin, 1st-degree, 2nd-degree, and 3rd-degree relationships respectively. Relationship inference for more distant relationships is more challenging
 
+<br><br>
 
 ## Calculating relatedness
 
@@ -456,7 +459,9 @@ ggarrange(R1_KING_filtered, R1_R0_filtered, common.legend=T, legend="bottom")
 
 ```
 
-But what about the Full-sibs/parent-offspring? Remember that we can use R0 to tell these apart. We expect parent-offspring pairs to be ~0 and full-sibs to be > 0. 
+<br>
+
+How then do we tell the Full-sibs/parent-offspring apart? Remember that we can use R0. We expect parent-offspring pairs to be ~0 and full-sibs to be > 0. 
 
 Because we're elevated above 0, these individuals are probably siblings, rather than parent offspring. 
 
