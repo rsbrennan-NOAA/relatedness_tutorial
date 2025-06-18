@@ -11,7 +11,7 @@
 
 <meta name="author" content="Reid Brennan" />
 
-<meta name="date" content="2025-06-17" />
+<meta name="date" content="2025-06-18" />
 
 <title>Relatedness tutorial</title>
 
@@ -1487,7 +1487,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Relatedness tutorial</h1>
 <h4 class="author">Reid Brennan</h4>
-<h4 class="date">2025-06-17</h4>
+<h4 class="date">2025-06-18</h4>
 
 </div>
 
@@ -1880,13 +1880,13 @@ print(A)</code></pre>
 # - 2500 SNPs with 1 matching allele → P(IBS=1) = 0.25
 # - 7300 SNPs with 2 matching alleles → P(IBS=2) = 0.73
 
-observed_IBS &lt;- c(0.015, 0.25, 0.73)
+observed_IBS &lt;- c(0.02, 0.25, 0.73)
 
 # Solve for IBD 
 IBD_probs &lt;- solve(A, observed_IBS)
 IBD_probs</code></pre>
-<pre><code>##     IBD=0     IBD=1     IBD=2 
-## 0.2929687 0.3828125 0.3192187</code></pre>
+<pre><code>##    IBD=0    IBD=1    IBD=2 
+## 0.390625 0.250000 0.359375</code></pre>
 <pre class="r"><code># these should add to 1</code></pre>
 <p>These IBD probabilities are then used to calculate kinship
 coefficient, which for plink is the proportion of alleles share by IBD.
@@ -1897,13 +1897,14 @@ kinship values.</p>
 <pre class="r"><code>pi_hat &lt;- 0.5 * IBD_probs[2] + IBD_probs[3]
 pi_hat</code></pre>
 <pre><code>##    IBD=1 
-## 0.510625</code></pre>
+## 0.484375</code></pre>
 <pre class="r"><code>pi_hat/2</code></pre>
 <pre><code>##     IBD=1 
-## 0.2553125</code></pre>
+## 0.2421875</code></pre>
 <p>Go look at the table from earlier that shows the expected
 relationships between individuals.</p>
-<p>From this, our two individuals are Siblings or Parent-Offspring.</p>
+<p>From this, our two individuals are Siblings or Parent-Offspring. How
+do we tell these apart? Jump down to <a href="#calculating-relatedness">Calculating relatedness</a>.</p>
 <p><strong>With this basic approach, we are assuming there is no
 population structure</strong></p>
 </div>

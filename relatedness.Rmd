@@ -311,7 +311,7 @@ print(A)
 # - 2500 SNPs with 1 matching allele → P(IBS=1) = 0.25
 # - 7300 SNPs with 2 matching alleles → P(IBS=2) = 0.73
 
-observed_IBS <- c(0.015, 0.25, 0.73)
+observed_IBS <- c(0.02, 0.25, 0.73)
 
 # Solve for IBD 
 IBD_probs <- solve(A, observed_IBS)
@@ -337,7 +337,7 @@ pi_hat/2
  
 Go look at the table from earlier that shows the expected relationships between individuals. 
 
-From this, our two individuals are Siblings or Parent-Offspring. 
+From this, our two individuals are Siblings or Parent-Offspring. How do we tell these apart? Jump down to [Calculating relatedness]. 
 
 
 **With this basic approach, we are assuming there is no population structure**
