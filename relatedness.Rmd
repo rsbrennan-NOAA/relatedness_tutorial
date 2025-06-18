@@ -6,7 +6,7 @@ output:
   html_document:
     theme: united
     toc: true
-    toc_float: true
+    toc_float: false
     center: true
 ---
 
