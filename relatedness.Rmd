@@ -177,8 +177,8 @@ In this case, our two individuals share 0 alleles by state and 0 by descent. In 
 
 Two possibilities:
 
-Individual 1 is `AA` Individual 2 is `aa`: probability p^2^×q^2^ 
-Individual 1 is `aa` Individual 2 is `AA`: probability p^2^×q^2^ 
+- Individual 1 is `AA` Individual 2 is `aa`: probability p^2^×q^2^   
+- Individual 1 is `aa` Individual 2 is `AA`: probability p^2^×q^2^ 
 
 Total: 2p^2^q^2^. 
 
@@ -190,9 +190,9 @@ Two individuals share 1 allele by state, 0 by descent.
 
 Possibilities:
 
-Individual 1 is AA and Individual 2 is Aa: probability p^2^ × 2pq = 2p^3^q
-Individual 1 is Aa and Individual 2 is AA: probability 2pq × p^2^ = 2p^3^q
-Total: 2p^3^q + 2p^3^q = 4p^3^q
+- Individual 1 is AA and Individual 2 is Aa: probability p^2^ × 2pq = 2p^3^q  
+- Individual 1 is Aa and Individual 2 is AA: probability 2pq × p^2^ = 2p^3^q  
+- Total: 2p^3^q + 2p^3^q = 4p^3^q
 
 And we have to do it both for AA,Aa and Aa,aa, so we add these together: 4p^3^q + 4p^3^q
 
@@ -206,15 +206,15 @@ If the genotype is AA, Aa, then the IBD allele must be A.
 
 Case 1: Individual 1 is AA, Individual 2 is Aa
 
-Individual 1's non-IBD allele must be A (probability p)
-Individual 2's non-IBD allele must be a (probability q)
-Probability: p × q = pq
+- Individual 1's non-IBD allele must be A (probability p)  
+- Individual 2's non-IBD allele must be a (probability q)  
+- Probability: p × q = pq  
 
 Case 2: Individual 1 is Aa, Individual 2 is AA
 
-Individual 1's non-IBD allele must be a (probability q)
-Individual 2's non-IBD allele must be A (probability p)
-Probability: q × p = pq
+- Individual 1's non-IBD allele must be a (probability q)  
+- Individual 2's non-IBD allele must be A (probability p)  
+- Probability: q × p = pq  
 
 Because we have the specific case where genotypes are AA and Aa. This can ONLY happen when the shared IBD allele is A (if it were a, we couldn't get genotypes AA and Aa). The probability that the IBD allele is A is p because when two individuals share an allele by descent, that shared allele must have come from a common ancestor, which happens at a frequency of p.
 
@@ -235,25 +235,27 @@ Case 1: Individual 1 is AA, Individual 2 is AA
 
 The shared IBD allele must be A (probability p)
 
-Individual 1's non-IBD allele is A (probability p)
-Individual 2's non-IBD allele is A (probability p)
+- Individual 1's non-IBD allele is A (probability p)  
+- Individual 2's non-IBD allele is A (probability p)  
 
-we need three independent "A" outcomes: the ancestral IBD allele plus the two non-IBD alleles.
-Total: p^3^
+we need three independent "A" outcomes: the ancestral IBD allele plus the two non-IBD alleles.  
+
+- Total: p^3^
 
 Case 2: Individual 1 is aa, Individual 2 is aa
 
-The same as above, but for q:q^3^
+- The same as above, but for q:q^3^
 
 Case 3: Individual 1 is Aa, Individual 2 is Aa
 
-Either A or a could be the IBD allele.
+- Either A or a could be the IBD allele.
 
-The probability both individuals receive an A non-IBD (p * p) and that a is IBD (q) = p^2^q
+The probability both individuals receive an A non-IBD (p * p) and that a is IBD (q) = p^2^q  
 The probability both individuals receive an a non-IBD (q * q) and that A is IBD (p) = pq^2^
 
+Total:
 
- p^3^ + q^3^ + p^2^q + pq^2^
+- p^3^ + q^3^ + p^2^q + pq^2^
 
 <br><br>
 
@@ -346,7 +348,7 @@ From this, our two individuals are Siblings or Parent-Offspring. How do we tell 
 
 ## What about population structure?
 
-When there is population structure, the PLINK method described above will be biased and unreliable because it assumes individuals are drawn from a homogeneous population with known allele frequencies. Fortunately, there have been additional methods developed that work well under these conditions. The most well known is the [KING-Robust approach](https://www.kingrelatedness.com/manual.shtml) (link to [original paper](https://www.chen.kingrelatedness.com/publications/pdf/BI26_2867.pdf)). In general, you should always choose the KING approach over the PLINK approach. 
+When there is population structure, the PLINK method described above will be biased and unreliable because it assumes individuals are drawn from a homogeneous population with known allele frequencies. Fortunately, there have been additional methods developed that work well under these conditions. The most well known is the [KING-Robust approach](https://www.kingrelatedness.com/manual.shtml) (link to [original paper](https://www.chen.kingrelatedness.com/publications/pdf/BI26_2867.pdf)). In general, you should choose the KING approach over the PLINK approach. 
 
 ![](images/KING.PNG){width=20%}
 
@@ -362,7 +364,7 @@ from the manual:
 
 ## Calculating relatedness
 
-Ok, so how do we actually analyze data? We're going to follow the approach described by [Waples et al.](https://doi.org/10.1111/mec.14954) using [NgsRelat](https://github.com/ANGSD/NgsRelate).
+Ok, so how do we actually analyze data? We're going to follow the approach described by [Waples et al.](https://doi.org/10.1111/mec.14954) using [NgsRelate](https://github.com/ANGSD/NgsRelate).
 
 This method is nice because:
 
@@ -389,6 +391,8 @@ For example, the KING estimator cannot distinguish parent-offspring from full si
 We will use [NgsRelate](https://github.com/ANGSD/NgsRelate) to calculate R0, R1, and the KING estimator. See the [NgsRelate paper here](https://academic.oup.com/gigascience/article/8/5/giz034/5481763).
 
 This program can calculate a ton of different relatedness estimators and can handle genotype likelihoods or a vcf, which means it can handle low coverage data. For our example, we will use a vcf, but see the website for how to use likelihoods. 
+
+You can find `whales.vcf.gz` in the [git repo](https://github.com/rsbrennan-NOAA/relatedness_tutorial). 
 
 
 The command is straight forward:
