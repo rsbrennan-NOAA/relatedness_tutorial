@@ -14,7 +14,24 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Don't care about the theory/background? Skip to the example: [Calculating relatedness]
+---
+
+### Updates to incorporate
+
+- pairwise-mismatch rate (PMR): https://doi.org/10.1111/mec.70375
+- CKMRsim: https://eriqande.github.io/CKMRsim/
+
+---
+
+
+### Don't care about the theory/background? 
+
+Skip to the example: [Calculating relatedness]
+
+
+---
+
+## Identity by descent and relatedness
 
 
 To estimate relatedness, we consider whether or not alleles are Identical By Descent (IBD). IBD is simply asking if two alleles were inherited from a common ancestor. When we calculate relatedness, we're usually actually calculating kinship, the probability that two alleles sampled at random from two individuals are identical by descent. What this means, practically speaking, is that the highest kinship possible is 0.5. I'll explain below with an example using monozygotic twins. 
